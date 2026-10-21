@@ -119,13 +119,26 @@ export function VerificationProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let cancelled = false;
-    requestJson<{ ok: boolean }>("/health")
-      .then(() => {
+    let retryTimer: number | undefined;
+    // Render free instances sleep when idle; the first request during a cold
+    // start can fail, so keep retrying with backoff until /health reports ok.
+    const checkHealth = async (delay: number) => {
+      try {
+        const health = await requestJson<{ ok?: unknown }>("/health", {
+          signal: AbortSignal.timeout(20000),
+        });
+        if (health?.ok !== true) throw new Error("Health check did not report ok.");
         if (!cancelled) setBackendStatus("connected");
-      })
-      .catch(() => {
-        if (!cancelled) setBackendStatus("unavailable");
-      });
+      } catch {
+        if (cancelled) return;
+        setBackendStatus("unavailable");
+        retryTimer = window.setTimeout(
+          () => void checkHealth(Math.min(delay * 2, 15000)),
+          delay,
+        );
+      }
+    };
+    void checkHealth(2000);
 
     let savedId: string | null = null;
     try {
@@ -140,6 +153,7 @@ export function VerificationProvider({ children }: { children: ReactNode }) {
     }
     return () => {
       cancelled = true;
+      window.clearTimeout(retryTimer);
     };
   }, [refreshSessionById]);
 
