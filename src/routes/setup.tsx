@@ -21,8 +21,8 @@ export const Route = createFileRoute("/setup")({
 
 function Setup() {
   const [name, setName] = useState("");
-  const [templateId, setTemplateId] = useState(REQUIREMENT_TEMPLATES[0].id);
-  const [reqs, setReqs] = useState<Requirement[]>(REQUIREMENT_TEMPLATES[0].requirements);
+  const [templateId, setTemplateId] = useState(REQUIREMENT_TEMPLATES[0]!.id);
+  const [reqs, setReqs] = useState<Requirement[]>(REQUIREMENT_TEMPLATES[0]!.requirements);
   const [newLabel, setNewLabel] = useState("");
 
   const pickTemplate = (id: string) => {

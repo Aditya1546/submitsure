@@ -16,7 +16,7 @@ export const Route = createFileRoute("/checklist")({
 });
 
 function Checklist() {
-  const reqs = REQUIREMENT_TEMPLATES[0].requirements;
+  const reqs = REQUIREMENT_TEMPLATES[0]!.requirements;
   return (
     <>
       <PageHeader title="Document checklist" subtitle="Statuses will come from the backend. Until then, every item shows as not checked." />
