@@ -129,8 +129,9 @@ export function VerificationProvider({ children }: { children: ReactNode }) {
         });
         if (health?.ok !== true) throw new Error("Health check did not report ok.");
         if (!cancelled) setBackendStatus("connected");
-      } catch {
+      } catch (error) {
         if (cancelled) return;
+        console.warn("[SubmitSure] Health check failed, retrying in", delay, "ms:", error);
         setBackendStatus("unavailable");
         retryTimer = window.setTimeout(
           () => void checkHealth(Math.min(delay * 2, 15000)),
