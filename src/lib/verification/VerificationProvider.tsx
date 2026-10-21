@@ -40,6 +40,7 @@ interface VerificationContextValue {
   uploadDocument: (requirementId: string, file: File) => Promise<void>;
   submitManualFields: (fields: Record<string, string>) => Promise<void>;
   confirmFields: (fields: Record<string, string>) => Promise<void>;
+  editConfirmedFields: (fields: Record<string, string>) => Promise<void>;
   generateReport: () => Promise<void>;
   reconnectEvents: () => void;
   clearMessages: () => void;
@@ -396,6 +397,16 @@ export function VerificationProvider({ children }: { children: ReactNode }) {
     [runMutation],
   );
 
+  const editConfirmedFields = useCallback(
+    async (fields: Record<string, string>) => {
+      await runMutation("/fields", "PATCH", { fields });
+      // The backend never returns field values, so keep the edited set locally for the
+      // re-confirmation step; POST /confirm then replaces the server's field set with it.
+      setManualFields(fields);
+    },
+    [runMutation],
+  );
+
   const generateReport = useCallback(async () => {
     await runMutation("/report", "POST", {});
   }, [runMutation]);
@@ -432,6 +443,7 @@ export function VerificationProvider({ children }: { children: ReactNode }) {
         uploadDocument,
         submitManualFields,
         confirmFields,
+        editConfirmedFields,
         generateReport,
         reconnectEvents,
         clearMessages,

@@ -1,7 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Plus, Trash2, Upload } from "lucide-react";
+import { Pencil, Plus, Trash2, Upload } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { ConfirmedFieldsEditor } from "@/components/ConfirmedFieldsEditor";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PageHeader } from "@/components/NotConnected";
@@ -34,6 +36,7 @@ function Workspace() {
     uploadDocument,
     submitManualFields,
     confirmFields,
+    editConfirmedFields,
     isMutating,
     errorMessage,
     notice,
@@ -44,6 +47,8 @@ function Workspace() {
   const [file, setFile] = useState<File | null>(null);
   const [newFieldName, setNewFieldName] = useState("");
   const [busy, setBusy] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [reviewed, setReviewed] = useState(false);
 
   useEffect(() => {
     if (!session || Object.keys(manualFields).length > 0) return;
@@ -298,29 +303,77 @@ function Workspace() {
                       {busy ? "Submitting…" : "Submit fields for confirmation"}
                     </Button>
                   ) : (
-                    <Button
-                      className="mt-4"
-                      disabled={!validFields || busy || isMutating || sessionExpired}
-                      onClick={() =>
-                        void run(() => confirmFields(Object.fromEntries(fieldEntries)))
-                      }
-                    >
-                      {busy ? "Confirming…" : "Confirm these fields"}
-                    </Button>
+                    <>
+                      {report && !report.valid && (
+                        <p className="mt-4 rounded-md border bg-muted p-3 text-sm">
+                          Confirmed fields were edited. The backend invalidated the previous report
+                          (packet v{report.packet_version}); confirm the values again to continue.
+                        </p>
+                      )}
+                      <div className="mt-4 flex items-start gap-2">
+                        <Checkbox
+                          id="confirm-reviewed"
+                          checked={reviewed}
+                          onCheckedChange={(checked) => setReviewed(checked === true)}
+                        />
+                        <Label htmlFor="confirm-reviewed" className="text-sm font-normal leading-snug">
+                          I have reviewed these field names and values and they are correct.
+                        </Label>
+                      </div>
+                      <Button
+                        className="mt-4"
+                        disabled={
+                          !validFields || !reviewed || busy || isMutating || sessionExpired
+                        }
+                        onClick={() =>
+                          void run(async () => {
+                            await confirmFields(Object.fromEntries(fieldEntries));
+                            setReviewed(false);
+                          })
+                        }
+                      >
+                        {busy ? "Confirming…" : "Confirm these fields"}
+                      </Button>
+                    </>
                   )}
                 </>
               ) : session.state === "VERIFIED" || session.state === "REPORT_READY" ? (
-                <div className="mt-4 rounded-lg border bg-muted/40 p-4 text-sm">
-                  <p className="font-medium">Fields confirmed by the backend</p>
-                  <p className="mt-1 text-muted-foreground">
-                    Field names: {session.field_names.join(", ") || "Not available"}
-                  </p>
-                  {report && !report.valid && (
-                    <p className="mt-2 text-warning-foreground">
-                      The backend marks the existing report as invalid.
+                editing ? (
+                  <ConfirmedFieldsEditor
+                    fieldNames={session.field_names}
+                    disabled={isMutating || sessionExpired}
+                    onCancel={() => setEditing(false)}
+                    onSubmit={async (fields) => {
+                      clearMessages();
+                      await editConfirmedFields(fields);
+                      setReviewed(false);
+                      setEditing(false);
+                    }}
+                  />
+                ) : (
+                  <div className="mt-4 rounded-lg border bg-muted/40 p-4 text-sm">
+                    <p className="font-medium">Fields confirmed by the backend</p>
+                    <p className="mt-1 text-muted-foreground">
+                      Field names: {session.field_names.join(", ") || "Not available"}
                     </p>
-                  )}
-                </div>
+                    {report && !report.valid && (
+                      <p className="mt-2 text-warning-foreground">
+                        The backend marks the existing report as invalid.
+                      </p>
+                    )}
+                    <Button
+                      className="mt-4"
+                      variant="outline"
+                      disabled={busy || isMutating || sessionExpired}
+                      onClick={() => {
+                        clearMessages();
+                        setEditing(true);
+                      }}
+                    >
+                      <Pencil /> Edit confirmed fields
+                    </Button>
+                  </div>
+                )
               ) : (
                 <p className="mt-4 rounded-lg border bg-muted/40 p-4 text-sm text-muted-foreground">
                   Upload at least one required document before entering verification fields.
