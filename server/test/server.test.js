@@ -66,6 +66,40 @@ test("sequence numbers are strictly increasing with no gaps", async () => {
   events.forEach((e, i) => assert.equal(e.sequence, i + 1));
 });
 
+test("events expose the required schema and preserve compatibility aliases", async () => {
+  const s = await toVerified();
+  const { events } = await readEvents(s.id);
+  const ids = new Set();
+  for (const event of events) {
+    assert.equal(typeof event.event_id, "string");
+    assert.ok(event.event_id.length > 0);
+    assert.equal(event.sequence_number, event.sequence);
+    assert.equal(event.event_type, event.type);
+    assert.equal(event.timestamp, event.at);
+    assert.equal(typeof event.timestamp, "string");
+    assert.equal(event.session_id, s.id);
+    assert.equal(Number.isInteger(event.packet_version), true);
+    ids.add(event.event_id);
+  }
+  assert.equal(ids.size, events.length);
+});
+
+test("terminal SESSION_EXPIRED events use the same compatible schema", () => {
+  const localStore = new Store({ now: () => clock });
+  const session = localStore.create({ application_name: "Synthetic", requirement_set: RS });
+  let terminal;
+  localStore.subscribe(session, (event, final) => {
+    if (final) terminal = event;
+  });
+  localStore.expire(session);
+
+  assert.equal(typeof terminal.event_id, "string");
+  assert.equal(terminal.sequence_number, terminal.sequence);
+  assert.equal(terminal.event_type, terminal.type);
+  assert.equal(terminal.timestamp, terminal.at);
+  assert.equal(terminal.event_type, "SESSION_EXPIRED");
+});
+
 test("replay returns only events after last_seen_sequence", async () => {
   const s = await toVerified();
   const all = (await readEvents(s.id)).events;

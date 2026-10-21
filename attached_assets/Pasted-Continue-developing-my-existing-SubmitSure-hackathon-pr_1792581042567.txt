@@ -1,0 +1,23 @@
+Continue developing my existing SubmitSure hackathon project using AI-generated changes only. I am not allowed to manually write code.
+
+The frontend is already built in Lovable. Its backend is deployed on Render at https://submitsure.onrender.com. Do not create a duplicate backend or change the hosting provider.
+
+Please inspect the existing project and implement the following:
+
+1. Connect the existing frontend to the deployed backend using https://submitsure.onrender.com. Preserve the current design and navigation.
+
+2. Implement the complete verification workflow using the actual API contract in server/src/app.js and server/src/store.js: create a session, upload a document, enter fields manually, confirm fields, and generate and display a readiness report.
+
+3. Connect the Event Monitor to the real NDJSON event stream. Support replay from last_seen_sequence, ignore duplicate events, recover from sequence gaps, and clearly handle SESSION_EXPIRED responses.
+
+4. Ensure every mutating session request sends the required client event ID, client sequence number, and expected packet version. Follow the actual server implementation rather than guessing request formats.
+
+5. The server currently emits event fields named sequence, type, and at. The hackathon requires event_id, sequence_number, event_type, and timestamp. Use AI-generated changes to add the required fields while retaining existing aliases for compatibility, and add tests for the required schema.
+
+6. Make the displayed verification state, packet version, report validity, and event history reflect actual backend responses. Never simulate successful backend operations when a request fails.
+
+7. Preserve the privacy requirements. Do not persist uploaded documents or extracted personal information. Use synthetic data for testing.
+
+8. Run the existing backend tests and frontend build or tests. Fix issues you find where practical.
+
+Do not publish or deploy anything yet. Do not overwrite GitHub history. After implementation, report which tests passed, which files changed, what remains unfinished, and whether the changes have been synchronized back to GitHub. Do not claim that the live application works until it has been tested.

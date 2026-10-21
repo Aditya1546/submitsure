@@ -31,4 +31,4 @@ Optional `X-Expected-Packet-Version` for stale-write protection.
 
 Errors: `410 SESSION_EXPIRED` (unknown, idle past TTL, or `last_seen_sequence` ahead of server = restart),
 `409 ILLEGAL_TRANSITION | OUT_OF_ORDER | STALE_CLIENT_SEQ | STALE_PACKET_VERSION`.
-Every event carries `server_epoch`; a changed epoch means the server restarted.
+Every logged event carries `event_id`, `sequence_number`, `event_type`, and `timestamp`, plus the legacy aliases `sequence`, `type`, and `at`. Events also carry `server_epoch`; a changed epoch means the server restarted.
