@@ -18,25 +18,29 @@ export type VerificationState = (typeof VERIFICATION_STATES)[number];
 
 export type FindingStatus = "verified" | "needs_review" | "cannot_verify";
 
-/** One line of the planned NDJSON stream. `sequence` is strictly increasing per session. */
+/** One line of the NDJSON stream. Both required names and compatibility aliases are exposed. */
 export interface VerificationEvent {
+  event_id: string;
+  sequence_number: number;
+  event_type: string;
+  timestamp: string;
+  /** Compatibility aliases. */
   sequence: number;
   session_id: string;
   packet_version: number;
-  type: "state_transition" | "extraction" | "confirmation" | "report_invalidated" | "error";
+  type: string;
   from?: VerificationState;
   to?: VerificationState;
   at: string;
 }
 
-/** Planned endpoints (not yet implemented). */
+/** Endpoints provided by the verification server. */
 export const PLANNED_ENDPOINTS = {
-  createSession: "POST /api/sessions",
-  uploadDocument: "POST /api/sessions/:id/documents",
-  confirmFields: "POST /api/sessions/:id/confirm",
-  eventStream: "GET /api/sessions/:id/events?last_seen_sequence=N  (application/x-ndjson)",
-  report: "GET /api/sessions/:id/report",
+  createSession: "POST /sessions",
+  uploadDocument: "POST /sessions/:id/documents",
+  submitFields: "POST /sessions/:id/extraction",
+  confirmFields: "POST /sessions/:id/confirm",
+  eventStream: "GET /sessions/:id/events?last_seen_sequence=N  (application/x-ndjson)",
+  generateReport: "POST /sessions/:id/report",
+  report: "GET /sessions/:id/report",
 } as const;
-
-/** Honest connection status. Flip only when a real backend is wired and tested. */
-export const BACKEND_CONNECTED = false;
