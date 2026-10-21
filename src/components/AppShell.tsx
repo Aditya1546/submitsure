@@ -1,7 +1,15 @@
 import { Link } from "@tanstack/react-router";
-import { Activity, ClipboardList, FileCheck2, LayoutDashboard, ScanSearch, Settings2, ShieldCheck } from "lucide-react";
+import {
+  Activity,
+  ClipboardList,
+  FileCheck2,
+  LayoutDashboard,
+  ScanSearch,
+  Settings2,
+  ShieldCheck,
+} from "lucide-react";
 import type { ReactNode } from "react";
-import { BACKEND_CONNECTED } from "@/lib/verification/contract";
+import { NotConnectedBadge } from "@/components/NotConnected";
 
 const NAV = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -18,7 +26,9 @@ export function AppShell({ children }: { children: ReactNode }) {
       <aside className="bg-sidebar text-sidebar-foreground md:sticky md:top-0 md:h-screen md:w-64 md:shrink-0">
         <div className="flex items-center gap-2 px-5 py-5">
           <ShieldCheck className="h-7 w-7 text-sidebar-primary" />
-          <span className="font-display text-lg font-bold text-sidebar-accent-foreground">SubmitSure</span>
+          <span className="font-display text-lg font-bold text-sidebar-accent-foreground">
+            SubmitSure
+          </span>
         </div>
         <nav className="flex gap-1 overflow-x-auto px-3 pb-3 md:flex-col md:overflow-visible">
           {NAV.map(({ to, label, icon: Icon }) => (
@@ -35,10 +45,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           ))}
         </nav>
         <div className="hidden px-5 py-4 text-xs md:block">
-          <div className="flex items-center gap-2">
-            <span className={`h-2 w-2 rounded-full ${BACKEND_CONNECTED ? "bg-success" : "bg-warning"}`} />
-            Backend: {BACKEND_CONNECTED ? "connected" : "not connected"}
-          </div>
+          <NotConnectedBadge />
         </div>
       </aside>
       <main className="flex-1 px-5 py-8 md:px-10 md:py-10">

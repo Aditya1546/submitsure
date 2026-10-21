@@ -1,0 +1,1 @@
+- [SubmitSure project constraints](submitsure-project-constraints.md) — keep AI-assisted edits on the existing Render backend; don't duplicate or rehost it.

@@ -70,7 +70,20 @@ export class Store {
 
   expire(s) {
     this.sessions.delete(s.id);
-    const line = { type: "SESSION_EXPIRED", session_id: s.id, at: new Date(this.now()).toISOString() };
+    const sequence = s.seq + 1;
+    const timestamp = new Date(this.now()).toISOString();
+    const line = {
+      event_id: randomUUID(),
+      sequence_number: sequence,
+      event_type: "SESSION_EXPIRED",
+      timestamp,
+      sequence,
+      session_id: s.id,
+      packet_version: s.packet_version,
+      type: "SESSION_EXPIRED",
+      at: timestamp,
+      server_epoch: this.epoch,
+    };
     for (const l of s.listeners) l(line, true);
     s.listeners.clear();
     s.fields = null;
@@ -221,7 +234,22 @@ export class Store {
   }
 
   #emit(s, type, data = {}) {
-    const ev = { sequence: ++s.seq, session_id: s.id, packet_version: s.packet_version, type, at: new Date(this.now()).toISOString(), server_epoch: this.epoch, ...data };
+    const sequence = ++s.seq;
+    const timestamp = new Date(this.now()).toISOString();
+    const ev = {
+      event_id: randomUUID(),
+      sequence_number: sequence,
+      event_type: type,
+      timestamp,
+      // Keep the original names for existing clients.
+      sequence,
+      session_id: s.id,
+      packet_version: s.packet_version,
+      type,
+      at: timestamp,
+      server_epoch: this.epoch,
+      ...data,
+    };
     Object.freeze(ev);
     s.events.push(ev); // append-only
     for (const l of s.listeners) l(ev, false);
